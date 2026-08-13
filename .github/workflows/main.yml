@@ -1,0 +1,110 @@
+name: Build APK
+
+# No branch filter: this repo does one thing, produce an APK. A `branches: [ main ]`
+# filter only earns its keep once several branches live in parallel — until then it
+# just silently fails to trigger when the default branch is called something else.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write        # required to publish the Release
+
+# The build counter is the APK's own version number, not just the Release name.
+# Without it every APK claims to be version 1 and the phone has no way to tell that
+# the one you just downloaded is newer than the one already installed.
+env:
+  VERSION_CODE: ${{ github.run_number }}
+  VERSION_NAME: 1.0.${{ github.run_number }}
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      # Gradle comes from the action rather than the wrapper: files uploaded through
+      # the GitHub web UI lose their executable bit, so `./gradlew` would die with
+      # "permission denied". The wrapper is still in the repo for local builds.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      # The simulation is the whole game, and it runs on the JVM with no emulator.
+      # If the decay curve breaks we want to fail here, not ship it.
+      - name: Tests
+        run: gradle :app:testDebugUnitTest --no-daemon
+
+      - name: Publish test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/
+          retention-days: 14
+
+      # The `secrets` context isn't reliable inside a step-level `if`, so probe it
+      # once into an output. No keystore? Still produce a debug APK.
+      - name: Check for keystore
+        id: ks
+        env:
+          KS: ${{ secrets.KEYSTORE_B64 }}
+        run: echo "has=${KS:+yes}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore keystore
+        if: steps.ks.outputs.has == 'yes'
+        env:
+          KS: ${{ secrets.KEYSTORE_B64 }}
+        run: echo "$KS" | base64 -d > keystore.jks
+
+      - name: Build signed APK
+        if: steps.ks.outputs.has == 'yes'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle :app:assembleRelease --no-daemon
+
+      - name: Build debug APK
+        if: steps.ks.outputs.has != 'yes'
+        run: gradle :app:assembleDebug --no-daemon
+
+      # One file, one name. Fail loudly if the build produced several rather than
+      # shipping one at random.
+      - name: Isolate the single APK
+        run: |
+          mapfile -t found < <(find app/build/outputs/apk -name '*.apk' | sort)
+          echo "APKs found: ${#found[@]}"
+          printf '%s\n' "${found[@]}"
+          if [ "${#found[@]}" -ne 1 ]; then
+            echo "::error::Expected 1 APK, got ${#found[@]}"
+            exit 1
+          fi
+          mkdir -p out
+          cp "${found[0]}" out/Nintendog.apk
+          ls -lh out/Nintendog.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nintendog
+          path: out/Nintendog.apk
+          retention-days: 90
+
+      # This is the link to open on the phone: a direct .apk, not a .zip.
+      - name: Publish the Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Nintendog v1.0.${{ github.run_number }}
+          body: |
+            Single APK — ${{ steps.ks.outputs.has == 'yes' && 'signed (release)' || 'debug' }}.
+            Open this link on the phone and tap Nintendog.apk to install.
+          files: out/Nintendog.apk
+          make_latest: true
