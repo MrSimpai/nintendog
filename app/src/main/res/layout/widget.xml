@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/w_mood"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:text="🙂" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/w_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFEDEFF5"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:text="Buddy" />
+
+            <TextView
+                android:id="@+id/w_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FF9AA3B8"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:text="is happy and content." />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:text="🍖" />
+
+        <ProgressBar
+            android:id="@+id/w_food"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="8dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:max="100"
+            android:progress="70" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:text="😊" />
+
+        <ProgressBar
+            android:id="@+id/w_happy"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="8dp"
+            android:layout_marginStart="4dp"
+            android:max="100"
+            android:progress="70" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/w_feed"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_btn"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="#FFEDEFF5"
+            android:textSize="13sp"
+            android:text="🍖 Feed" />
+
+        <TextView
+            android:id="@+id/w_water"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/widget_btn"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="#FFEDEFF5"
+            android:textSize="13sp"
+            android:text="💧 Water" />
+
+        <TextView
+            android:id="@+id/w_pet"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/widget_btn"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="#FFEDEFF5"
+            android:textSize="13sp"
+            android:text="❤️ Pet" />
+    </LinearLayout>
+</LinearLayout>

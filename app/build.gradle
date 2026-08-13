@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Restored by CI from the KEYSTORE_B64 secret. Absent locally, and absent on any
+// fork without the secret — in which case we fall back to a debug APK.
+def keystoreFile = rootProject.file('keystore.jks')
+
+android {
+    namespace 'com.poc.nintendog'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.poc.nintendog"
+        minSdk 24
+        targetSdk 34
+
+        // The version comes from the CI build counter, falling back to 1 locally.
+        // Android refuses to install over a version whose number went down, and an
+        // APK claiming to be the same version as the installed one is never offered
+        // as an update.
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
+        versionName System.getenv("VERSION_NAME") ?: "1.0"
+    }
+
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            create("release") {
+                storeFile keystoreFile
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystoreFile.exists()) signingConfig signingConfigs.getByName("release")
+        }
+    }
+
+    // One APK, every device — the CI step that publishes the Release expects
+    // exactly one file.
+    splits { abi { enable false } }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+// No third-party runtime dependencies: plain framework widgets and a Canvas-drawn
+// dog. JUnit is test-only.
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
